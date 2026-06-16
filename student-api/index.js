@@ -39,11 +39,19 @@ let students=[
 ];
 
 app.get("/students",(req,res)=>{
+    const {city}=req.query;
+
+    if(city){
+        const filtered =students.filter(s=>s.city===city);
+
+        return res.json(filtered);
+
+    }
     res.json(students);
 });
 
 
-app.get("students/:id",(req,res)=>{
+app.get("/students/:id",(req,res)=>{
     const id=parseInt(req.params.id);
     const student=students.find( s=> s.id===id);
 
@@ -83,7 +91,7 @@ app.put("/students/:id",(req,res)=>{
         });
 
     }
-    student[index]={
+    students[index]={
         id :id,
         name :req.body.name,
         city : req.body.city
@@ -104,15 +112,3 @@ app.delete("/students/:id",(req,res)=>{
     });
 });
 
-// add filtering
-app.get("/students",(req,res)=>{
-    const {city}=req.query;
-
-    if(city){
-        const filtered =students.filter(s=>s.city===city);
-
-        return res.json(filtered);
-
-    }
-    res.json(students);
-})
