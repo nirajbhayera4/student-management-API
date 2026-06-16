@@ -38,7 +38,7 @@ let students=[
     }
 ];
 
-app.get("/students",(res,res)=>{
+app.get("/students",(req,res)=>{
     res.json(students);
 });
 
