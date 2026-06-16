@@ -54,4 +54,65 @@ app.get("students/:id",(req,res)=>{
         });
     }
     res.json(student);
+});
+
+//POST 
+
+app.post("/students",(req,res)=>{
+    const newStudent={
+        id: students.length+1,
+        name : req.body.name,
+        city : req.body.city
+    };
+
+    students.push(newStudent);
+    res.status(201).json(newStudent);
+});
+
+
+
+//PUT (update full data);
+
+app.put("/students/:id",(req,res)=>{
+    const id=parseInt(req.params.id);
+    const index=students.findIndex(s=>s.id===id);
+
+    if(index==-1){
+        return res.status(404).json({
+            message :"student not found"
+        });
+
+    }
+    student[index]={
+        id :id,
+        name :req.body.name,
+        city : req.body.city
+    };
+
+    res.json(students[index]);
+});
+
+
+//delete 
+app.delete("/students/:id",(req,res)=>{
+    const id=parseInt(req.params.id);
+
+    students=students.filter(s=>s.id !==id);
+
+    res.json({
+        message : "student deleted successfully"
+    });
+});
+
+// add filtering
+app.get("/students",(req,res)=>{
+    const {city}=req.query;
+
+    if(city){
+        const filtered =students.filter(s=>s.city===city);
+
+        return res.json(filtered);
+
+    }
+    res.json(students);
 })
