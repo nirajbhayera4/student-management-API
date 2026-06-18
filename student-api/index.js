@@ -1,114 +1,139 @@
-const express=require ("express");
-const app=express();
+const express = require("express");
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/student-management";
 
 app.use(express.json());
 
-app.get("/",(req,res)=>{
-    res.send("API is working");
+const studentSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    age: {
+      type: Number,
+      min: 1,
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Student = mongoose.model("Student", studentSchema);
+
+async function connectDB() {
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error("MongoDB connection error:", error.message);
+    process.exit(1);
+  }
+}
+
+app.get("/", (req, res) => {
+  res.send("API is working");
 });
 
-app.listen(3000,()=>{
-    console.log("server running on port 3000");
-});
+app.get("/students", async (req, res) => {
+  try {
+    const filter = {};
 
-let students=[
-    {
-        id:1,
-        name:"student1",
-        age:18,
-        email:"student1@example.com"
-    },
-    {
-        id:2,
-        name:"student2",
-        age:19,
-        email:"student2@example.com"
-    },
-    {
-        id:3,
-        name:"student3",
-        age:20,
-        email:"student3@example.com"
-    },
-    {
-        id:4,
-        name:"student4",
-        age:21,
-        email:"student4@example.com"
+    if (req.query.city) {
+      filter.city = req.query.city;
     }
-];
 
-app.get("/students",(req,res)=>{
-    const {city}=req.query;
-
-    if(city){
-        const filtered =students.filter(s=>s.city===city);
-
-        return res.json(filtered);
-
-    }
+    const students = await Student.find(filter).sort({ createdAt: -1 });
     res.json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
+app.get("/students/:id", async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
 
-app.get("/students/:id",(req,res)=>{
-    const id=parseInt(req.params.id);
-    const student=students.find( s=> s.id===id);
-
-
-    if(!student){
-        return res.status(404).json({
-            message :"student not found"
-        });
+    if (!student) {
+      return res.status(404).json({ message: "student not found" });
     }
+
     res.json(student);
+  } catch (error) {
+    res.status(400).json({ message: "invalid student id" });
+  }
 });
 
-//POST 
-
-app.post("/students",(req,res)=>{
-    const newStudent={
-        id: students.length+1,
-        name : req.body.name,
-        city : req.body.city
-    };
-
-    students.push(newStudent);
-    res.status(201).json(newStudent);
-});
-
-
-
-//PUT (update full data);
-
-app.put("/students/:id",(req,res)=>{
-    const id=parseInt(req.params.id);
-    const index=students.findIndex(s=>s.id===id);
-
-    if(index==-1){
-        return res.status(404).json({
-            message :"student not found"
-        });
-
-    }
-    students[index]={
-        id :id,
-        name :req.body.name,
-        city : req.body.city
-    };
-
-    res.json(students[index]);
-});
-
-
-//delete 
-app.delete("/students/:id",(req,res)=>{
-    const id=parseInt(req.params.id);
-
-    students=students.filter(s=>s.id !==id);
-
-    res.json({
-        message : "student deleted successfully"
+app.post("/students", async (req, res) => {
+  try {
+    const student = await Student.create({
+      name: req.body.name,
+      age: req.body.age,
+      email: req.body.email,
+      city: req.body.city,
     });
+
+    res.status(201).json(student);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
+app.put("/students/:id", async (req, res) => {
+  try {
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      {
+        name: req.body.name,
+        age: req.body.age,
+        email: req.body.email,
+        city: req.body.city,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!student) {
+      return res.status(404).json({ message: "student not found" });
+    }
+
+    res.json(student);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+app.delete("/students/:id", async (req, res) => {
+  try {
+    const student = await Student.findByIdAndDelete(req.params.id);
+
+    if (!student) {
+      return res.status(404).json({ message: "student not found" });
+    }
+
+    res.json({ message: "student deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: "invalid student id" });
+  }
+});
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`server running on port ${PORT}`);
+  });
+});
