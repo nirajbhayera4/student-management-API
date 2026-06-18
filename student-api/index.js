@@ -8,6 +8,7 @@ const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/student-management";
 
 app.use(express.json());
+app.use(express.static("public"));
 
 const studentSchema = new mongoose.Schema(
   {
@@ -70,8 +71,8 @@ async function connectDB() {
   }
 }
 
-app.get("/", (req, res) => {
-  res.send("API is working");
+app.get("/api/status", (req, res) => {
+  res.json({ message: "API is working" });
 });
 
 app.get("/students", async (req, res) => {

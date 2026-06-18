@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Management</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-label="Dashboard overview">
+        <div>
+          <p class="eyebrow">MongoDB Student API</p>
+          <h1>Student Management</h1>
+        </div>
+        <div class="metrics" aria-live="polite">
+          <div class="metric">
+            <span id="studentCount">0</span>
+            <small>Students</small>
+          </div>
+          <div class="metric">
+            <span id="apiState">Ready</span>
+            <small>API State</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="editor-panel" aria-label="Student form">
+          <div class="panel-heading">
+            <h2 id="formTitle">Add Student</h2>
+            <button class="icon-button" id="resetButton" type="button" title="Reset form" aria-label="Reset form">
+              ↺
+            </button>
+          </div>
+
+          <form id="studentForm">
+            <input type="hidden" id="studentId" />
+
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" minlength="2" maxlength="50" required />
+
+            <label for="age">Age</label>
+            <input id="age" name="age" type="number" min="3" max="100" required />
+
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required />
+
+            <label for="city">City</label>
+            <input id="city" name="city" type="text" minlength="2" maxlength="50" required />
+
+            <div id="messageBox" class="message" role="status" aria-live="polite"></div>
+
+            <button class="primary-button" type="submit" id="submitButton">Save Student</button>
+          </form>
+        </aside>
+
+        <section class="data-panel" aria-label="Student records">
+          <div class="toolbar">
+            <div class="search-group">
+              <label for="cityFilter">Filter by city</label>
+              <input id="cityFilter" type="search" placeholder="All cities" />
+            </div>
+            <button class="secondary-button" id="refreshButton" type="button">Refresh</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Age</th>
+                  <th>Email</th>
+                  <th>City</th>
+                  <th class="actions-col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTable"></tbody>
+            </table>
+            <div id="emptyState" class="empty-state" hidden>No students found.</div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
