@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -73,7 +73,11 @@ async function connectDB() {
 }
 
 app.get("/api/status", (req, res) => {
-  res.json({ message: "API is working" });
+  res.json({
+    message: "API is working",
+    database:
+      mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+  });
 });
 
 app.get("/students", async (req, res) => {

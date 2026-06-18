@@ -9,6 +9,7 @@ const studentsTable = document.querySelector("#studentsTable");
 const emptyState = document.querySelector("#emptyState");
 const studentCount = document.querySelector("#studentCount");
 const apiState = document.querySelector("#apiState");
+const dbState = document.querySelector("#dbState");
 
 const fields = {
   id: document.querySelector("#studentId"),
@@ -26,9 +27,16 @@ function setMessage(text, type = "") {
 }
 
 function setLoading(isLoading) {
-  apiState.textContent = isLoading ? "Loading" : "Ready";
+  if (isLoading) {
+    apiState.textContent = "Loading";
+  }
+
   submitButton.disabled = isLoading;
   refreshButton.disabled = isLoading;
+}
+
+function setReady() {
+  apiState.textContent = "Ready";
 }
 
 function getPayload() {
@@ -125,12 +133,31 @@ async function loadStudents() {
 
     students = await response.json();
     renderStudents();
+    setReady();
     setMessage(city ? `Showing students from ${city}` : "Student list refreshed", "success");
   } catch (error) {
     apiState.textContent = "Error";
     setMessage(error.message, "error");
   } finally {
     setLoading(false);
+  }
+}
+
+async function checkStatus() {
+  try {
+    const response = await fetch("/api/status");
+
+    if (!response.ok) {
+      throw new Error("Backend offline");
+    }
+
+    const status = await response.json();
+    apiState.textContent = "Ready";
+    dbState.textContent = status.database === "connected" ? "Connected" : "Offline";
+  } catch (error) {
+    apiState.textContent = "Offline";
+    dbState.textContent = "Offline";
+    setMessage("Backend or database is not connected", "error");
   }
 }
 
@@ -230,4 +257,4 @@ cityFilter.addEventListener("input", () => {
   cityFilter.searchTimer = window.setTimeout(loadStudents, 300);
 });
 
-loadStudents();
+checkStatus().then(loadStudents);
