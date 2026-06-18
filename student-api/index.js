@@ -13,21 +13,31 @@ const studentSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "name is required"],
       trim: true,
+      minlength: [2, "name must be at least 2 characters"],
+      maxlength: [50, "name cannot be more than 50 characters"],
     },
     age: {
       type: Number,
-      min: 1,
+      required: [true, "age is required"],
+      min: [3, "age must be at least 3"],
+      max: [100, "age cannot be more than 100"],
     },
     email: {
       type: String,
+      required: [true, "email is required"],
       trim: true,
       lowercase: true,
+      unique: true,
+      match: [/^\S+@\S+\.\S+$/, "email must be valid"],
     },
     city: {
       type: String,
+      required: [true, "city is required"],
       trim: true,
+      minlength: [2, "city must be at least 2 characters"],
+      maxlength: [50, "city cannot be more than 50 characters"],
     },
   },
   {
@@ -36,6 +46,19 @@ const studentSchema = new mongoose.Schema(
 );
 
 const Student = mongoose.model("Student", studentSchema);
+
+function sendError(res, error) {
+  if (error.name === "ValidationError") {
+    const errors = Object.values(error.errors).map((err) => err.message);
+    return res.status(400).json({ message: "validation failed", errors });
+  }
+
+  if (error.code === 11000) {
+    return res.status(409).json({ message: "email already exists" });
+  }
+
+  return res.status(400).json({ message: error.message });
+}
 
 async function connectDB() {
   try {
@@ -91,7 +114,7 @@ app.post("/students", async (req, res) => {
 
     res.status(201).json(student);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    sendError(res, error);
   }
 });
 
@@ -114,7 +137,7 @@ app.put("/students/:id", async (req, res) => {
 
     res.json(student);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    sendError(res, error);
   }
 });
 
